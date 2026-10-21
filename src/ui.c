@@ -35,6 +35,27 @@ void ui_clear_screen(void) {
     VBK_REG = VBK_TILES;
 }
 
+static void set_row_palette(uint8_t y, uint8_t h, uint8_t pal) {
+    VBK_REG = VBK_ATTRIBUTES;
+    fill_bkg_rect(0, y, DEVICE_SCREEN_WIDTH, h, pal);
+    VBK_REG = VBK_TILES;
+}
+
+void ui_title(const char *text) {
+    ui_print(0, 0, "                    ");
+    ui_print(1, 0, text);
+    set_row_palette(0, 1, UI_PAL_TITLE);
+}
+
+void ui_dim_rows(uint8_t y, uint8_t h) {
+    set_row_palette(y, h, UI_PAL_DIM);
+}
+
+void ui_print(uint8_t x, uint8_t y, const char *s) {
+    gotoxy(x, y);
+    while (*s) putchar(*s++);
+}
+
 uint8_t ui_pad_update(void) {
     uint8_t cur = joypad();
     uint8_t pressed = cur & (uint8_t)~pad_prev;

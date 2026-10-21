@@ -13,11 +13,26 @@ typedef struct {
     uint8_t tiles[5];   // 表示するタイル番号
 } ui_field_t;
 
+// CGB 背景パレットの割り当て（main.c で色を設定する）
+#define UI_PAL_TEXT   0   // 通常の文字
+#define UI_PAL_TITLE  3   // タイトル帯（文字と背景を反転）
+#define UI_PAL_DIM    4   // 操作説明など控えめな文字
+
 // 数字のタイル番号を調べる。printf を使えるようになった後、最初に 1 回呼ぶ
 void ui_init(void);
 
 // 画面の文字と CGB 属性（パレット番号）を消す。モードに入るときに呼ぶ
 void ui_clear_screen(void);
+
+// 1 行目をタイトル帯にして text を書く
+void ui_title(const char *text);
+
+// y 行目から h 行を控えめな色にする
+void ui_dim_rows(uint8_t y, uint8_t h);
+
+// (x, y) に文字列をそのまま書く（printf と違い % を解釈しない）。
+// 画面右下（x = 19, y = 17）まで書くとコンソールがスクロールするので、最終行は 19 文字まで
+void ui_print(uint8_t x, uint8_t y, const char *s);
 
 // ボタンを読み、新しく押されたボタン（J_A など）を返す。1 フレームに 1 回呼ぶ。
 // 十字キーは押しっぱなしにすると一定間隔で繰り返し押されたことにする

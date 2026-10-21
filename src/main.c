@@ -5,6 +5,7 @@
 #include "ui.h"
 #include "live.h"
 #include "capmode.h"
+#include "menu.h"
 
 // 背景パレット（フォントとタイルは色 0 = 背景、色 3 = 前景）
 static const palette_color_t pal_bkg[] = {
@@ -18,9 +19,26 @@ static const palette_color_t pal_bkg[] = {
     RGB8( 40,  60, 110),
     RGB8( 70, 110, 170),  // 光なしの線
     RGB8(255, 220,  90),  // 光ありの線・縦線
+    // 2: ランプ（LIVE_PAL_LAMP）・OFF のヒストグラム。各モードが入るときに設定し直す
+    RGB8( 16,  24,  48),
+    RGB8( 16,  24,  48),
+    RGB8( 16,  24,  48),
+    RGB8( 70,  30,  40),
+    // 3: タイトル帯（UI_PAL_TITLE）。文字と背景を反転
+    RGB8(120, 255, 200),  // 背景（ミント）
+    RGB8( 40,  60, 110),
+    RGB8( 40,  60, 110),
+    RGB8( 16,  24,  48),  // 文字（濃紺）
+    // 4: 控えめな文字（UI_PAL_DIM）
+    RGB8( 16,  24,  48),
+    RGB8( 40,  60, 110),
+    RGB8( 70, 110, 170),
+    RGB8( 90, 130, 170),  // 文字（くすんだ青）
 };
 
 void main(void) {
+    uint8_t mode;
+
     // CGB 以外（DMG / GBA）では IR が使えないので停止する
     if (_cpu != CGB_TYPE || _is_GBA) {
         printf("\n\n  GBC REQUIRED\n\n");
@@ -34,8 +52,13 @@ void main(void) {
     set_bkg_palette(0, sizeof(pal_bkg) / sizeof(pal_bkg[0]) / 4, pal_bkg);
 
     ui_init();
+    mode = MODE_MENU;
     while (1) {
-        live_run();
-        capmode_run();
+        switch (mode) {
+        case MODE_LIVE:    mode = live_run();    break;
+        case MODE_CAPTURE: mode = capmode_run(); break;
+        case MODE_HELP:    mode = help_run();    break;
+        default:           mode = menu_run();    break;
+        }
     }
 }

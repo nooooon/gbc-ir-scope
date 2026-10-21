@@ -2,7 +2,9 @@
 #ifndef CAPMODE_H
 #define CAPMODE_H
 
-// キャプチャモードを実行する。B ボタンで戻る（次はライブモード）
-void capmode_run(void);
+#include <stdint.h>
+
+// キャプチャモードを実行する。B ボタンで MODE_MENU（menu.h）を返す
+uint8_t capmode_run(void);
 
 #endif

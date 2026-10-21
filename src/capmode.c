@@ -9,6 +9,7 @@
 #include "scope.h"
 #include "stats.h"
 #include "ui.h"
+#include "menu.h"
 #include "capmode.h"
 
 #define WAVE_Y        11
@@ -129,10 +130,11 @@ static uint8_t fake_capture(void) {
 // 記録する。キャンセルされたら 0 を返す
 static uint8_t do_capture(void) {
     ui_clear_screen();
-    gotoxy(0, 0);  printf("GBC IR SCOPE CAPTURE");
-    gotoxy(1, 6);  printf("ARMED.");
-    gotoxy(1, 7);  printf("WAITING FOR LIGHT");
-    gotoxy(1, 9);  printf("B: CANCEL");
+    ui_title("CAPTURE");
+    ui_print(1, 6, "ARMED.");
+    ui_print(1, 7, "WAITING FOR LIGHT");
+    ui_print(1, 17, "B:CANCEL");
+    ui_dim_rows(17, 1);
 
 #ifdef IR_FAKE_INPUT
     end_reason = fake_capture();
@@ -235,8 +237,9 @@ static void render_view(void) {
 
 // 全画面に共通の操作説明
 static void draw_help(void) {
-    gotoxy(1, 16); printf("SEL:PAGE  A:NEW");
-    gotoxy(1, 17); printf("B:LIVE  START:MODE");
+    ui_print(1, 16, "SEL:PAGE  A:NEW");
+    ui_print(1, 17, "B:MENU  START:MODE");
+    ui_dim_rows(16, 2);
 }
 
 static void print_mode(uint8_t x, uint8_t y) {
@@ -247,7 +250,7 @@ static void print_mode(uint8_t x, uint8_t y) {
 // ---- 波形画面 ----
 
 static void draw_wave_static(void) {
-    gotoxy(0, 0); printf("CAPTURE: WAVE");
+    ui_title("CAPTURE: WAVE");
 #ifdef IR_FAKE_INPUT
     gotoxy(14, 0); printf("(FAKE)");
 #endif
@@ -257,7 +260,8 @@ static void draw_wave_static(void) {
     gotoxy(1, 6); printf("ZOOM :");
     gotoxy(1, 7); printf("FROM :       MS");
     gotoxy(1, 8); printf("WIDTH:       MS");
-    gotoxy(1, 15); printf("UD:ZOOM LR:SCROLL");
+    ui_print(1, 15, "UD:ZOOM LR:SCROLL");
+    ui_dim_rows(15, 1);
     draw_help();
 
     ui_draw_dec(8, 2, capture_runs, 5);
@@ -371,8 +375,8 @@ static void draw_level_stats(uint8_t x, const stats_level_t *s) {
 static void draw_stats(void) {
     const stats_t *st = burst_mode ? &stats_burst : &stats_raw;
 
-    gotoxy(0, 0); printf("STATS:");
-    print_mode(7, 0);
+    ui_title("STATS:");
+    print_mode(8, 0);
     gotoxy(0, 1); printf("    ON(US)  OFF(US)");
     gotoxy(0, 2); printf("N");
     gotoxy(0, 3); printf("MIN");
@@ -423,8 +427,8 @@ static void draw_list(void) {
     stats_entry_t e = list_top;
     uint8_t r;
 
-    gotoxy(0, 0); printf("LIST:");
-    print_mode(6, 0);
+    ui_title("LIST:");
+    print_mode(7, 0);
     gotoxy(0, 1); printf("    #  LV       US");
     for (r = 0; r < LIST_ROWS; r++) {
         uint8_t y = LIST_Y + r;
@@ -438,6 +442,7 @@ static void draw_list(void) {
         ui_draw_dec32(11, y, stats_counts_to_us(e.counts), 6);
     }
     gotoxy(1, 15); printf("UD:1  LR:%u", (uint16_t)LIST_ROWS);
+    ui_dim_rows(15, 1);
     draw_help();
 }
 
@@ -472,9 +477,9 @@ static void open_page(void) {
     }
 }
 
-void capmode_run(void) {
+uint8_t capmode_run(void) {
     while (1) {
-        if (!do_capture()) return;
+        if (!do_capture()) return MODE_MENU;
 
         build_index();
         stats_compute();
@@ -489,7 +494,7 @@ void capmode_run(void) {
 
             vsync();
             pad = ui_pad_update();
-            if (pad & J_B) return;
+            if (pad & J_B) return MODE_MENU;
             if (pad & J_A) break;
 
             if (pad & J_SELECT) {

@@ -7,6 +7,7 @@
 #include "ir.h"
 #include "scope.h"
 #include "ui.h"
+#include "menu.h"
 #include "live.h"
 
 // 波形 1 列 = 8 * BYTES_PER_COL サンプル。どちらの周波数でも 1 列 ≒ 1.95ms にそろえる
@@ -85,8 +86,7 @@ static void init_popcount(void) {
 }
 
 static void draw_static(void) {
-    gotoxy(1, 0);
-    printf("GBC IR SCOPE  LIVE");
+    ui_title("LIVE");
 #ifdef IR_FAKE_INPUT
     gotoxy(5, 1);
     printf("FAKE INPUT");
@@ -115,8 +115,9 @@ static void draw_static(void) {
     gotoxy(17, WAVE_Y + 4);
     printf("NOW");
 
-    gotoxy(1, 16); printf("BLOCK=BLINK(38KHZ)");
-    gotoxy(1, 17); printf("A: CAPTURE");
+    ui_print(1, 16, "BLOCK=BLINK(38KHZ)");
+    ui_print(1, 17, "A:CAPTURE  B:MENU");
+    ui_dim_rows(16, 2);
 
     ui_field_init(&field_light, VAL_X, VAL_Y_LIGHT, 3);
     ui_field_init(&field_edges, VAL_X, VAL_Y_EDGES, 5);
@@ -212,8 +213,9 @@ static void reset_state(void) {
     shown_drops = 0;
 }
 
-void live_run(void) {
+uint8_t live_run(void) {
     uint8_t last_time;
+    uint8_t next;
 
     init_popcount();
     reset_state();
@@ -245,8 +247,11 @@ void live_run(void) {
         consume_samples();
         scope_render();
 
-        if (ui_pad_update() & J_A) break;
+        next = ui_pad_update();
+        if (next & J_A) { next = MODE_CAPTURE; break; }
+        if (next & J_B) { next = MODE_MENU; break; }
     }
 
     ir_live_stop();
+    return next;
 }
