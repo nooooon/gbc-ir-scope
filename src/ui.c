@@ -70,6 +70,22 @@ void ui_draw_dec(uint8_t x, uint8_t y, uint16_t v, uint8_t digits) {
     set_bkg_tiles(x, y, digits, 1, buf);
 }
 
+void ui_draw_dec32(uint8_t x, uint8_t y, uint32_t v, uint8_t digits) {
+    static const uint32_t pow10_32[] = { 100000, 10000, 1000, 100, 10, 1 };
+    static uint8_t buf[6];
+    uint8_t i;
+    if (v > 999999UL) v = 999999UL;
+    for (i = 0; i < 6; i++) {
+        uint8_t d = 0;
+        while (v >= pow10_32[i]) {
+            v -= pow10_32[i];
+            d++;
+        }
+        buf[i] = digit_tile[d];
+    }
+    set_bkg_tiles(x, y, digits, 1, buf + (6 - digits));
+}
+
 void ui_field_init(ui_field_t *f, uint8_t x, uint8_t y, uint8_t digits) {
     f->vram = get_bkg_xy_addr(x, y);
     f->len = digits;

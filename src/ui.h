@@ -26,6 +26,9 @@ uint8_t ui_pad_update(void);
 // 10 進 digits 桁（ゼロ埋め、1〜5 桁）を (x, y) に表示する。初期化時の固定表示用
 void ui_draw_dec(uint8_t x, uint8_t y, uint16_t v, uint8_t digits);
 
+// 32bit 版（ゼロ埋め、1〜6 桁）。999999 を超える値は 999999 と表示する
+void ui_draw_dec32(uint8_t x, uint8_t y, uint32_t v, uint8_t digits);
+
 void ui_field_init(ui_field_t *f, uint8_t x, uint8_t y, uint8_t digits);
 
 // 表示する値を決める（VRAM には触らない）
