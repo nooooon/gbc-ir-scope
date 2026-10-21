@@ -25,11 +25,18 @@
 // 波形エリアを (map_x, map_y) に置く
 void scope_init(uint8_t map_x, uint8_t map_y);
 
+// 列をすべて「光なし」に戻す（タイルとマップはそのまま）。
+// このあと SCOPE_WIDTH 列 push すると、ちょうど画面 1 枚ぶんの列になる
+void scope_clear(void);
+
 // 右端に 1 列追加する（全体が 1 ピクセル左に流れる）
 void scope_push(uint8_t state);
 
 // 直前に描いた面の転送を始める。VBlank 中に呼ぶ（転送は次のフレームの HBlank ごとに進む）
 void scope_upload(void);
+
+// 転送が終わるまで待つ（HALT すると転送が止まるので、そのあいだ vsync() を呼ばないこと）
+void scope_wait_upload(void);
 
 // 転送に使っていないほうの面に、現在の列で波形を描く
 void scope_render(void);

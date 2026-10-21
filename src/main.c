@@ -2,7 +2,9 @@
 #include <gb/gb.h>
 #include <gb/cgb.h>
 #include <stdio.h>
+#include "ui.h"
 #include "live.h"
+#include "capmode.h"
 
 // 背景パレット（フォントとタイルは色 0 = 背景、色 3 = 前景）
 static const palette_color_t pal_bkg[] = {
@@ -31,5 +33,9 @@ void main(void) {
     cpu_fast();
     set_bkg_palette(0, sizeof(pal_bkg) / sizeof(pal_bkg[0]) / 4, pal_bkg);
 
-    live_run();
+    ui_init();
+    while (1) {
+        live_run();
+        capmode_run();
+    }
 }

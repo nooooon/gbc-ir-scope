@@ -115,8 +115,8 @@ static void draw_static(void) {
     gotoxy(17, WAVE_Y + 4);
     printf("NOW");
 
-    gotoxy(1, 16); printf("UP=LIGHT  LOW=DARK");
-    gotoxy(1, 17); printf("BLOCK=BLINK(38KHZ)");
+    gotoxy(1, 16); printf("BLOCK=BLINK(38KHZ)");
+    gotoxy(1, 17); printf("A: CAPTURE");
 
     ui_field_init(&field_light, VAL_X, VAL_Y_LIGHT, 3);
     ui_field_init(&field_edges, VAL_X, VAL_Y_EDGES, 5);
@@ -192,13 +192,33 @@ static void draw_vblank(void) {
     ui_field_flush(&field_drops);
 }
 
+// 入るたびに表示と集計を初期化する
+static void reset_state(void) {
+    pct_light = 0;
+    pct_bytes = 0;
+    light_pct = 0;
+    prev_bit = 0;
+    edges = 0;
+    drops = 0;
+    col_n = 0;
+    col_or = 0;
+    col_and = 0xFF;
+    frame_any = 0;
+    lamp_hold = 0;
+    lamp_lit = 0;
+    field_turn = 0;
+    shown_pct = 0;
+    shown_edges = 0;
+    shown_drops = 0;
+}
+
 void live_run(void) {
     uint8_t last_time;
 
     init_popcount();
-    col_and = 0xFF;
+    reset_state();
 
-    ui_init();
+    ui_clear_screen();
     draw_static();
     scope_init(0, WAVE_Y);
 
@@ -224,5 +244,9 @@ void live_run(void) {
 
         consume_samples();
         scope_render();
+
+        if (ui_pad_update() & J_A) break;
     }
+
+    ir_live_stop();
 }

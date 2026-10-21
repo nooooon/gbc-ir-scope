@@ -6,6 +6,14 @@
 
 static const uint16_t pow10[] = { 10000, 1000, 100, 10, 1 };
 
+// 十字キーのリピート（フレーム数）
+#define REPEAT_DELAY 20
+#define REPEAT_RATE  4
+#define PAD_DIRS     (J_UP | J_DOWN | J_LEFT | J_RIGHT)
+
+static uint8_t pad_prev;
+static uint8_t pad_hold;
+
 // '0'〜'9' のタイル番号（GBDK のフォントの並びに依存しないよう、実際に書いて読み戻す）
 static uint8_t digit_tile[10];
 
@@ -18,6 +26,29 @@ void ui_init(void) {
     }
     gotoxy(0, 0);
     printf("          ");
+}
+
+void ui_clear_screen(void) {
+    cls();
+    VBK_REG = VBK_ATTRIBUTES;
+    fill_bkg_rect(0, 0, DEVICE_SCREEN_WIDTH, DEVICE_SCREEN_HEIGHT, 0);
+    VBK_REG = VBK_TILES;
+}
+
+uint8_t ui_pad_update(void) {
+    uint8_t cur = joypad();
+    uint8_t pressed = cur & (uint8_t)~pad_prev;
+
+    if ((cur & PAD_DIRS) && (cur & PAD_DIRS) == (pad_prev & PAD_DIRS)) {
+        if (++pad_hold >= REPEAT_DELAY) {
+            pad_hold = REPEAT_DELAY - REPEAT_RATE;
+            pressed |= cur & PAD_DIRS;
+        }
+    } else {
+        pad_hold = 0;
+    }
+    pad_prev = cur;
+    return pressed;
 }
 
 // 割り算を使わず引き算で桁を出す。out には下 digits 桁を書く

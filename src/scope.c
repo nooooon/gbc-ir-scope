@@ -43,20 +43,16 @@ void scope_init(uint8_t map_x, uint8_t map_y) {
     static uint8_t row[SCOPE_TILES_W];
     uint8_t tx, ty;
 
+    // 前のモードの転送が残っていれば終わるのを待つ（同じ VRAM に書くので）
+    scope_wait_upload();
+
     wave_buf[0] = (uint8_t *)(((uint16_t)wave_raw + 15) & 0xFFF0);
     wave_buf[1] = wave_buf[0] + WAVE_BYTES;
     memset(wave_buf[0], 0, WAVE_BYTES * 2);
     memset(drawn_edge, 0, sizeof(drawn_edge));
     draw_side = 0;
 
-    // 最初は全部「光なし」
-    memset(ring_high, 0, sizeof(ring_high));
-    memset(ring_low, 0xFF, sizeof(ring_low));
-    memset(ring_edge, 0, sizeof(ring_edge));
-    ring_pos = 0;
-    ring_fill = 0;
-    ring_low[0] = 0;
-    last_state = SCOPE_LOW;
+    scope_clear();
 
     set_bkg_data(SCOPE_TILE_BASE, WAVE_TILES, wave_buf[0]);
     for (ty = 0; ty < SCOPE_TILES_H; ty++) {
@@ -68,6 +64,16 @@ void scope_init(uint8_t map_x, uint8_t map_y) {
     VBK_REG = VBK_ATTRIBUTES;
     fill_bkg_rect(map_x, map_y, SCOPE_TILES_W, SCOPE_TILES_H, SCOPE_PAL);
     VBK_REG = VBK_TILES;
+}
+
+void scope_clear(void) {
+    memset(ring_high, 0, sizeof(ring_high));
+    memset(ring_low, 0xFF, sizeof(ring_low));
+    memset(ring_edge, 0, sizeof(ring_edge));
+    ring_pos = 0;
+    ring_fill = 0;
+    ring_low[0] = 0;
+    last_state = SCOPE_LOW;
 }
 
 void scope_push(uint8_t state) {
@@ -108,6 +114,10 @@ void scope_upload(void) {
     HDMA3_REG = (uint8_t)(dst >> 8);
     HDMA4_REG = (uint8_t)dst;
     HDMA5_REG = HDMA_HBLANK | (WAVE_BYTES / 16 - 1);
+}
+
+void scope_wait_upload(void) {
+    while (!(HDMA5_REG & HDMA_HBLANK)) ;
 }
 
 // 色：光ありの線と縦線 = 色 3、光なしの線 = 色 2

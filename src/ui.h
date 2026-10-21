@@ -16,6 +16,13 @@ typedef struct {
 // 数字のタイル番号を調べる。printf を使えるようになった後、最初に 1 回呼ぶ
 void ui_init(void);
 
+// 画面の文字と CGB 属性（パレット番号）を消す。モードに入るときに呼ぶ
+void ui_clear_screen(void);
+
+// ボタンを読み、新しく押されたボタン（J_A など）を返す。1 フレームに 1 回呼ぶ。
+// 十字キーは押しっぱなしにすると一定間隔で繰り返し押されたことにする
+uint8_t ui_pad_update(void);
+
 // 10 進 digits 桁（ゼロ埋め、1〜5 桁）を (x, y) に表示する。初期化時の固定表示用
 void ui_draw_dec(uint8_t x, uint8_t y, uint16_t v, uint8_t digits);
 
