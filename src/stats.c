@@ -54,10 +54,13 @@ void stats_compute(void) {
         } else {
             level_add(&stats_raw.off, c);
             if (c < STATS_GAP_COUNTS) {
-                // 搬送波のすき間：ON とつなぎ、1 周期として数える
+                // 短い OFF：前後の ON とつなぐ。ON も短ければ搬送波の 1 周期として数える
+                // （ON が長いときは、塊の途中の一瞬の途切れなので周期には入れない）
                 burst += c;
-                stats_carrier_n++;
-                stats_carrier_sum += (uint32_t)last_on + c;
+                if (last_on < STATS_GAP_COUNTS) {
+                    stats_carrier_n++;
+                    stats_carrier_sum += (uint32_t)last_on + c;
+                }
             } else {
                 level_add(&stats_burst.on, burst);
                 level_add(&stats_burst.off, c);

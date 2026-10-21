@@ -29,7 +29,8 @@ typedef struct {
 extern stats_t stats_raw;    // ラン 1 つずつ
 extern stats_t stats_burst;  // 短い OFF をつないだ「塊」とその間
 
-// 搬送波：BURST の中の ON + 短い OFF の組の数と、その長さの合計（カウント）
+// 搬送波：ON も OFF も STATS_GAP_COUNTS 未満の組の数と、その長さの合計（カウント）。
+// 受光部が搬送波を塊として出す場合（Chromatic はそうなっているとみられる）は 0 になる
 extern uint16_t stats_carrier_n;
 extern uint32_t stats_carrier_sum;
 
