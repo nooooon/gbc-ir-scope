@@ -214,12 +214,13 @@ finish:
         ld      d, a                    ; d:l = 記録したバイト数
         srl     d
         rr      l                       ; ÷ 2
+        ; 変数は 0xD000〜 に置かれることもあるので、バンク 1 に戻してから書く
+        ld      a, #BANK_DEFAULT
+        ldh     (_SVBK_REG), a
         ld      a, l
         ld      (_capture_runs), a
         ld      a, d
         ld      (_capture_runs + 1), a
-        ld      a, #BANK_DEFAULT
-        ldh     (_SVBK_REG), a
         ld      a, b
         ret
 

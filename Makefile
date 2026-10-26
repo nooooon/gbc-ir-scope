@@ -20,6 +20,10 @@ CSRCS := $(wildcard $(SRCDIR)/*.c)
 ASRCS := $(wildcard $(SRCDIR)/*.s)
 OBJS  := $(CSRCS:$(SRCDIR)/%.c=$(OBJDIR)/%.o) $(ASRCS:$(SRCDIR)/%.s=$(OBJDIR)/%.o)
 
+# ROM の後半 16KB（0x4000〜0x7FFF、バンク 1）に置くファイル（拡張子なし）。
+# MBC なしの 32KB ROM ではバンク 1 が常に見えているので、BANKED にしなくても直接呼べる
+BANK1   := menu sendmode
+
 CFLAGS  := -Wa-l -Wl-m -Wl-j
 # -Wm-yC: CGB 専用 / -Wm-yn: タイトル / -Wm-yS: Emulicious 用シンボル
 LDFLAGS := -Wm-yC -Wm-yn"$(TITLE)" -Wl-j -Wm-yS
@@ -37,7 +41,7 @@ check-gbdk:
 
 # -Wf-MMD: ヘッダの依存関係を .d に出力（ヘッダだけ変えたときも再ビルドする）
 $(OBJDIR)/%.o: $(SRCDIR)/%.c | $(OBJDIR)
-	$(LCC) $(CFLAGS) -Wf-MMD $(DEFS) -c -o $@ $<
+	$(LCC) $(CFLAGS) -Wf-MMD $(DEFS) $(if $(filter $*,$(BANK1)),-Wf-bo1) -c -o $@ $<
 
 $(OBJDIR)/%.o: $(SRCDIR)/%.s | $(OBJDIR)
 	$(LCC) $(CFLAGS) -c -o $@ $<

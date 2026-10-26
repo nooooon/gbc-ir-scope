@@ -10,6 +10,7 @@
 #include "stats.h"
 #include "ui.h"
 #include "menu.h"
+#include "sendmode.h"
 #include "capmode.h"
 
 #define WAVE_Y        11
@@ -25,7 +26,8 @@
 #define PAGE_WAVE     0
 #define PAGE_STATS    1
 #define PAGE_LIST     2
-#define PAGE_COUNT    3
+#define PAGE_SEND     3
+#define PAGE_COUNT    4
 
 // ヒストグラムの棒のタイル（波形タイルとランプ用タイルの次に置く）
 //   HIST_TILE + k     ：下から k 行（0〜8）埋めたもの
@@ -471,8 +473,11 @@ static void open_page(void) {
     case PAGE_STATS:
         open_stats();
         break;
-    default:
+    case PAGE_LIST:
         draw_list();
+        break;
+    default:
+        send_page_draw();
         break;
     }
 }
@@ -483,6 +488,7 @@ uint8_t capmode_run(void) {
 
         build_index();
         stats_compute();
+        send_prepare();
         zoom = zoom_max;
         view_start = 0;
         stats_entry_first(&list_top, burst_mode);
@@ -495,7 +501,12 @@ uint8_t capmode_run(void) {
             vsync();
             pad = ui_pad_update();
             if (pad & J_B) return MODE_MENU;
-            if (pad & J_A) break;
+            if (pad & J_A) {
+                // SEND 画面の A は送信。それ以外の画面の A は取り直し
+                if (page != PAGE_SEND) break;
+                send_page_send();
+                continue;
+            }
 
             if (pad & J_SELECT) {
                 if (++page == PAGE_COUNT) page = PAGE_WAVE;
